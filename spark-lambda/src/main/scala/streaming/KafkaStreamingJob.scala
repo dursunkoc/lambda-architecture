@@ -19,7 +19,7 @@ object KafkaStreamingJob extends App{
   val streamingApp = (sc:SparkContext, batchDuration:Duration)=> {
     val ssc = new StreamingContext(sc, batchDuration)
     val kafkaParams = Map(
-      "zookeeper.connect" -> "localhost:2181",
+      "zookeeper.connect" -> "192.168.99.100:2181",
       "group.id" -> "lambda",
       "auto.offset.reset" -> "largest"
     )

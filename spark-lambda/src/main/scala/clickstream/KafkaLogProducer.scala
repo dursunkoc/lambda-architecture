@@ -21,6 +21,7 @@ object KafkaLogProducer extends App{
   val Visitors = (0 to wlc.visitors).map("Visitor-" + _)
   val Pages = (0 to wlc.pages).map("Page-" + _)
   val topic = wlc.kafkaTopic
+  println("ReadFiles...")
 
   val rnd = new Random()
 
@@ -29,14 +30,14 @@ object KafkaLogProducer extends App{
   val numberOfFiles = wlc.numberOfFiles
 
   val props = new Properties()
-  props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"localhost:9092")
+  props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"192.168.99.100:9092")
   props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.common.serialization.StringSerializer")
   props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.common.serialization.StringSerializer")
   props.put(ProducerConfig.ACKS_CONFIG,"all")
   props.put(ProducerConfig.CLIENT_ID_CONFIG,"WebLogProducer")
-
+  println("Producer....")
   private val kafkaProducer: Producer[Nothing, String] = new KafkaProducer[Nothing, String](props)
-
+  println("....READY!")
   for (i <- 1 to numberOfFiles) {
 
     // introduce a bit of randomness to time increments for demo purposes
@@ -56,7 +57,7 @@ object KafkaLogProducer extends App{
       val referrer = Referrers(rnd.nextInt(Referrers.length - 1))
       val prevPage = referrer match {
         case "Internal" => Pages(rnd.nextInt(Pages.length - 1))
-        case _ => ""
+        case _ => "ext"
       }
       val visitor = Visitors(rnd.nextInt(Visitors.length - 1))
       val page = Pages(rnd.nextInt(Pages.length - 1))
@@ -64,8 +65,9 @@ object KafkaLogProducer extends App{
 
       val line = s"$adjustedTimestamp\t$referrer\t$action\t$prevPage\t$visitor\t$page\t$product\n"
       val pr = new ProducerRecord(topic,line)
-      kafkaProducer.send(pr)
 
+      kafkaProducer.send(pr)
+      println(s"Sent ${(i-1) * wlc.records + iteration}")
 
       if(iteration % incrementTimeEvery == 0){
         println(s"Sent $iteration messages!")
